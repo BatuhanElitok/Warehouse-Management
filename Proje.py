@@ -1,6 +1,9 @@
 import pandas as pd
 from abc import *
 from tkinter import *
+import cv2 as cv
+
+
 
 class depot_management(ABC):    
         pass
@@ -151,94 +154,46 @@ user_panel.config(bg = "#e3dac9")
 user_panel.resizable(0,0)
 
 
+
 def login():
-    global item_id_entry,item_position_var,item_name_var, item_amount_entry
+    global access_level,login_person
     access_list = user_data.loc[user_data["ID"] == int(username_entry.get())]
     access_list = access_list.values.tolist()
     if username_entry.get() == str(access_list[0][0]):
-            if password_entry.get() == str(access_list[0][1]):
-                login_person = "Welcome "+ username_entry.get() + "."
+            if password_entry.get() == str(access_list[0][2]):
+                login_person = "Welcome "+ access_list[0][1] + "."
                 user_panel.destroy()
                 welcome_page = Tk()
-                welcome_page.title("LOGIN")
+                welcome_page.title("STATUS")
                 welcome_page.geometry("500x400")
                 welcome_page.config(bg = "#e3dac9")
                 welcome_page.resizable(0,0)
                 person_label = Label(welcome_page, text = login_person, bg = "#e3dac9", font=("Arial", 20))
                 person_label.place(relx = .5, rely = .4, anchor=CENTER)
                 
-                if access_list[0][2] == 1 and access_list[0][3] == 1:
+                if access_list[0][3] == 1 and access_list[0][4] == 1:
                     access_level = "Admin"
                     
-                elif access_list[0][2] == 1:
+                elif access_list[0][3] == 1:
                     access_level = "Worker"
                     
                 else:
                     access_level = "Security"
                 
-                access_level_label = Label(welcome_page, text = "Your access level is " + access_level, bg = "#e3dac9", font=("Arial", 20))
-                access_level_label.place(relx = .5, y= 200,anchor=CENTER)
-                if access_level == "Admin" or access_level == "Worker":
-                    root = Tk()
-                    root.title("Warehouse Management")
-                    root.geometry("300x160")
-                    root.resizable(0,0)
-
-                    # <- base ends here
-                    #---------------------------------------------
-                    # <- labelling starts here
-
-                    item_name_label = Label(root, text = "Item Name")
-                    item_name_label.grid(column = 0, row = 0, padx = 5, pady = 5)
-
-                    item_id_label = Label(root, text = "Item ID")
-                    item_id_label.grid(column = 0, row = 1, padx = 5, pady = 5)
-
-                    item_position_label = Label(root, text = "Item Position")
-                    item_position_label.grid(column = 0, row = 2, padx = 5, pady = 5)
-
-                    item_amount_label = Label(root, text = "Item Amount")
-                    item_amount_label.grid(column = 0, row = 3, padx = 5, pady = 5)
-
-                    # <- labelling ends here
-                    #---------------------------------------------
-                    # <- optionmenus starts here
-
-                    item_name_var = StringVar(root)
-                    item_name_var.set(item_name_list[0])
-                    item_name_option_menu = OptionMenu(root, item_name_var,*item_name_list, command = item_name_to_ID)
-                    item_name_option_menu.config(width = 17)
-                    item_name_option_menu.grid(column  =1,row = 0, padx = 5, pady = 5)
-
-                    item_position_var = StringVar(root)
-                    item_position_var.set("")
-                    item_position_option_menu = OptionMenu(root, item_position_var, *warehouse_list)
-                    item_position_option_menu.config(width = 17)
-                    item_position_option_menu.grid(column = 1, row = 2, padx = 5, pady = 5) 
-
-                    # <- optionmenus ends here
-                    #---------------------------------------------
-                    # <- entrys starts here
-
-                    item_id_entry = Entry(root, justify = CENTER)
-                    item_id_entry.insert(0,"Item ID")
-                    item_id_entry.config(state = "disabled", width = 23)
-                    item_id_entry.grid(column = 1,row = 1, padx = 5, pady = 5)
-
-                    item_amount_entry = Entry(root, justify = CENTER)
-                    item_amount_entry.config(width = 23)
-                    item_amount_entry.grid(column = 1, row = 3, padx = 5, pady = 5)
-
-                    # <- entrys ends here
-                    #---------------------------------------------
-                    # <- buttons starts here
-
-                    add_to_list_button = Button(root, text = "Add", command = add_to_list)
-                    add_to_list_button.grid(row = 0, column = 3, rowspan = 4, padx = 5, pady = 5)
-                    add_to_list_button.config(height= 9, width = 5)
-                    root.mainloop()
-                elif access_level == "Admin" or access_level == "Security":
-                        pass
+                access_level_label = Label(welcome_page, text = "Your access level is " + access_level, bg = "#e3dac9", font=("Arial", 17))
+                access_level_label.place(relx = .5, y= 210,anchor=CENTER)
+                warning_label = Label(welcome_page, text = "Please don't close this page while you are working", bg = "#e3dac9", font=("Arial", 13,"italic"))
+                warning_label.place(relx= .5, y = 275, anchor=CENTER)
+                if access_level == "Admin":
+                        management_page_open() 
+                        cam_page_open()
+                elif access_level == "Security":
+                        work_station = access_list[0][5]
+                        work_station_label = Label(welcome_page, text = "Your work station is " + work_station,bg = "#e3dac9", font=("Arial", 17))
+                        work_station_label.place(relx = 0.5, y = 245, anchor=CENTER)
+                        cam_page_open()
+                elif access_level == "Worker":
+                        management_page_open()
 
 
 user_panel_label = Label(user_panel, text = "USER PANEL", relief=SOLID, font=("Arial", 50), bg = "#e3dac9")
@@ -268,7 +223,94 @@ exit_button.place(x = 250, y = 300)
 login_button = Button(user_panel, text = "LOGIN", command= login,width= 30, height= 3, bg = "Green")
 login_button.place(x = 25, y = 300)
 
+def management_page_open():
+        global username_entry,item_id_entry,item_position_var,item_name_var, item_amount_entry
+        management_page = Tk()
+        management_page.title("Warehouse Management")
+        management_page.geometry("500x400")
+        management_page.resizable(0,0)
 
+        # <- base ends here
+        #---------------------------------------------
+        # <- labelling starts here
+
+        item_name_label = Label(management_page, text = "Item Name")
+        item_name_label.grid(column = 0, row = 0, padx = 5, pady = 5)
+
+        item_id_label = Label(management_page, text = "Item ID")
+        item_id_label.grid(column = 0, row = 1, padx = 5, pady = 5)
+
+        item_position_label = Label(management_page, text = "Item Position")
+        item_position_label.grid(column = 0, row = 2, padx = 5, pady = 5)
+
+        item_amount_label = Label(management_page, text = "Item Amount")
+        item_amount_label.grid(column = 0, row = 3, padx = 5, pady = 5)
+
+        # <- labelling ends here
+        #---------------------------------------------
+        # <- optionmenus starts here
+
+        item_name_var = StringVar(management_page)
+        item_name_var.set(item_name_list[0])
+        item_name_option_menu = OptionMenu(management_page, item_name_var,*item_name_list, command = item_name_to_ID)
+        item_name_option_menu.config(width = 17)
+        item_name_option_menu.grid(column  =1,row = 0, padx = 5, pady = 5)
+
+        item_position_var = StringVar(management_page)
+        item_position_var.set("")
+        item_position_option_menu = OptionMenu(management_page, item_position_var, *warehouse_list)
+        item_position_option_menu.config(width = 17)
+        item_position_option_menu.grid(column = 1, row = 2, padx = 5, pady = 5) 
+
+        # <- optionmenus ends here
+        #---------------------------------------------
+        # <- entrys starts here
+
+        item_id_entry = Entry(management_page, justify = CENTER)
+        item_id_entry.insert(0,"Item ID")
+        item_id_entry.config(state = "disabled", width = 23)
+        item_id_entry.grid(column = 1,row = 1, padx = 5, pady = 5)
+
+        item_amount_entry = Entry(management_page, justify = CENTER)
+        item_amount_entry.config(width = 23)
+        item_amount_entry.grid(column = 1, row = 3, padx = 5, pady = 5)
+
+        # <- entrys ends here
+        #---------------------------------------------
+        # <- buttons starts here
+
+        add_to_list_button = Button(management_page, text = "Add", command = add_to_list)
+        add_to_list_button.grid(row = 0, column = 3, rowspan = 4, padx = 5, pady = 5)
+        add_to_list_button.config(height= 9, width = 5)
+
+def cam_page_open():
+        
+        cam_page = Tk()
+        cam_page.title("Camera Management")
+        cam_page.geometry("500x400")
+        cam_page.resizable(0,0)
+        login_person_name = login_person.split(" ")
+        login_person_name = login_person_name[1]
+        login_person_name = login_person_name.split(".")
+        login_person_name = login_person_name[0]
+        work_station = user_data.loc[user_data["Fullname"] == login_person_name]
+        work_station = work_station.values.tolist()
+        if work_station[0][5] == "all":
+                button_0 = Button(cam_page, text = "Warehouse")
+                button_0.pack()
+        # elif work_station == warehouse_list[0]:
+        #         pass
+        # elif work_station == warehouse_list[1]:
+        #         pass
+        # elif work_station == warehouse_list[2]:
+        #         pass
+        # elif work_station == warehouse_list[3]:
+        #         pass
+        # else:
+        #         warning_label = Label(cam_page, text = "posamdopasmodpas")
+        #         warning_label.pack()
+        cam_page.mainloop()
+        
 
 user_panel.mainloop()
 
@@ -285,13 +327,17 @@ user_panel.mainloop()
 # print(data_item_position_list)
 # print(data_item_amount_list)
 
+
+
 data = pd.DataFrame(data)
 print(data)
 
 new_data = pd.concat([data_previous,data], ignore_index=True)
 new_data.reset_index()
 new_data.drop("Unnamed: 0", inplace = True, axis = 1)
-new_data.to_excel('output1.xlsx')
+
+print(new_data)
+
 
 
 
