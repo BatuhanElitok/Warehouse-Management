@@ -106,6 +106,12 @@ warehouse_list =[
         "Warehouse Izmir",
         "Warehouse Çanakkale"
 ]
+cam_for_warehouse_list = [
+                          4,
+                          4,
+                          2,
+                          3
+]
 item_name_list = [
         "Printer",
         "PC"
@@ -185,7 +191,7 @@ def login():
                 warning_label = Label(welcome_page, text = "Please don't close this page while you are working", bg = "#e3dac9", font=("Arial", 13,"italic"))
                 warning_label.place(relx= .5, y = 275, anchor=CENTER)
                 if access_level == "Admin":
-                        management_page_open() 
+                        management_page_open
                         cam_page_open()
                 elif access_level == "Security":
                         work_station = access_list[0][5]
@@ -283,35 +289,86 @@ def management_page_open():
         add_to_list_button.grid(row = 0, column = 3, rowspan = 4, padx = 5, pady = 5)
         add_to_list_button.config(height= 9, width = 5)
 
+
+
 def cam_page_open():
-        
+        global cam_page, name_of_warehouse, button_i
         cam_page = Tk()
         cam_page.title("Camera Management")
         cam_page.geometry("500x400")
         cam_page.resizable(0,0)
-        login_person_name = login_person.split(" ")
-        login_person_name = login_person_name[1]
-        login_person_name = login_person_name.split(".")
+        cam_page.config(bg = "#e3dac9")
+        login_person_name = login_person.split(".")
         login_person_name = login_person_name[0]
+        login_person_name = login_person_name.split("Welcome ")
+        login_person_name = login_person_name[1]
         work_station = user_data.loc[user_data["Fullname"] == login_person_name]
         work_station = work_station.values.tolist()
-        if work_station[0][5] == "all":
-                button_0 = Button(cam_page, text = "Warehouse")
-                button_0.pack()
-        # elif work_station == warehouse_list[0]:
-        #         pass
-        # elif work_station == warehouse_list[1]:
-        #         pass
-        # elif work_station == warehouse_list[2]:
-        #         pass
-        # elif work_station == warehouse_list[3]:
-        #         pass
-        # else:
-        #         warning_label = Label(cam_page, text = "posamdopasmodpas")
-        #         warning_label.pack()
-        cam_page.mainloop()
-        
 
+        
+        
+                 
+                                
+        if work_station[0][5] == "All":
+                
+                for i in range(0,4):       
+                        label_i = Label(cam_page, text = warehouse_list[i], bg = "#e3dac9", font=("Arial", 8), relief=SOLID)
+                        label_i.grid(row=0, column=i, padx = 5)
+                        for i in range(0, cam_for_warehouse_list[0]):
+                                button_cami = Button(cam_page, text = "CAM "+ str(i+1), bg = "#e3dac9", font=("Arial", 17), command = open_page_cam)
+
+                                button_cami.grid(row = i+1, column=0)
+                        for i in range(0, cam_for_warehouse_list[1]):
+                                button_cami = Button(cam_page, text = "CAM "+ str(i+1), bg = "#e3dac9", font=("Arial", 17), command = open_page_cam)
+
+                                button_cami.grid(row = i+1, column=1)
+                        for i in range(0, cam_for_warehouse_list[2]):
+                                button_cami = Button(cam_page, text = "CAM "+ str(i+1), bg = "#e3dac9", font=("Arial", 17), command = open_page_cam)
+
+                                button_cami.grid(row = i+1, column=2)                      
+                        for i in range(0, cam_for_warehouse_list[3]):
+                                button_cami = Button(cam_page, text = "CAM "+ str(i+1), bg = "#e3dac9", font=("Arial", 17), command = open_page_cam)
+
+                                button_cami.grid(row = i+1, column=3)
+                                
+        elif work_station[0][5] == warehouse_list[0]:
+                for i in range(0, cam_for_warehouse_list[0]):
+                        button_cami = Button(cam_page, text = "CAM "+ str(i+1), bg = "#e3dac9", font=("Arial", 17), command = open_page_cam)
+                        button_cami.config(justify=CENTER, width = 250)
+                        button_cami.pack()
+                
+        elif work_station[0][5] == warehouse_list[1]:
+                for i in range(0, cam_for_warehouse_list[1]):
+                        button_cami = Button(cam_page, text = "CAM "+ str(i+1), bg = "#e3dac9", font=("Arial", 17), command = open_page_cam)
+                        button_cami.config(justify=CENTER, width = 250)
+                        button_cami.pack()
+        elif work_station[0][5] == warehouse_list[2]:
+                for i in range(0, cam_for_warehouse_list[2]):
+                        button_cami = Button(cam_page, text = "CAM "+ str(i+1), bg = "#e3dac9", font=("Arial", 17), command = open_page_cam)
+                        button_cami.config(justify=CENTER, width = 250)
+                        button_cami.pack()
+        elif work_station[0][5] == warehouse_list[2]:
+                for i in range(0, cam_for_warehouse_list[3]):
+                        button_cami = Button(cam_page, text = "CAM "+ str(i+1), bg = "#e3dac9", font=("Arial", 17), command = open_page_cam)
+                        button_cami.config(justify=CENTER, width = 250)
+        #                 button_cami.pack()
+        
+        
+        cam_page.mainloop()
+def open_page_cam():
+                 
+                 cam_page.destroy()
+                 cam_cord = cv.VideoCapture(0)
+                 while (True):
+                         _, frame = cam_cord.read()
+                         cv.imshow("CAM 0", frame)
+                         if cv.waitKey(1) & 0xFF == ord('q'):
+                                break
+                 cam_cord.release()
+                 cv.destroyAllWindows()    
+                 cam_page_open()  
+
+        
 user_panel.mainloop()
 
 #--------------------UI END-------------------
@@ -341,5 +398,4 @@ print(new_data)
 
 
 
-# data.to_excel('output1.xlsx')
-# print(data)
+new_data.to_excel('output1.xlsx')
