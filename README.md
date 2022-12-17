@@ -17,5 +17,3 @@ Second-year Computer Engineering student, future Data Engineer. My interest for 
 
 ---
 [![](https://visitcount.itsvg.in/api?id=BatuhanElitok&icon=0&color=12)](https://visitcount.itsvg.in)
-
-<!-- Proudly created with GPRM ( https://gprm.itsvg.in ) -->
